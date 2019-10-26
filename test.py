@@ -17,7 +17,7 @@ import time
 # path_to_file = "/Users/jumbers/Documents/GitHub/yhack19/data.txt"
 
 # Download the file
-path_to_file = "/Users/jumbers/Documents/GitHub/yhack19/spa.txt"
+path_to_file = "/Users/Darcy/Desktop/yhack19/yhack19/2000_input.txt" # "/Users/jumbers/Documents/GitHub/yhack19/spa.txt"
 
 # Converts the unicode file to ascii
 def unicode_to_ascii(s):
@@ -44,17 +44,18 @@ def preprocess_sentence(w):
     w = '<start> ' + w + ' <end>'
     return w
 
+num_examples = 2000 # this is causing bug
+
 # 1. Remove the accents
 # 2. Clean the sentences
 # 3. Return word pairs in the format: [ENGLISH, SPANISH]
 def create_dataset(path, num_examples):
     lines = io.open(path, encoding='UTF-8').read().strip().split('\n')
+    smaller = min(num_examples, len(lines)) # doesn't work
 
-    word_pairs = [[preprocess_sentence(w) for w in l.split('\t')]  for l in lines[:num_examples]]
+    word_pairs = [[preprocess_sentence(w) for w in l.split('\t')]  for l in lines[:smaller]] #num_examples
 
     return zip(*word_pairs)
-
-en, sp = create_dataset(path_to_file, None)
 
 def max_length(tensor):
     return max(len(t) for t in tensor)
@@ -71,24 +72,17 @@ def tokenize(lang):
 
   return tensor, lang_tokenizer
 
-def load_dataset(path, num_examples=None):
+def load_dataset(path, num_examples=None): #=None
     # creating cleaned input, output pairs
-    # inp_lang, targ_lang = create_dataset(path, num_examples)                # flipped from tutorial
-    targ_lang, inp_lang = create_dataset(path, num_examples)
-
+    targ_lang, inp_lang = create_dataset(path, num_examples) #, inp_lang
+    # print("here", list(targ_lang))
     input_tensor, inp_lang_tokenizer = tokenize(inp_lang)
     target_tensor, targ_lang_tokenizer = tokenize(targ_lang)
 
     return input_tensor, target_tensor, inp_lang_tokenizer, targ_lang_tokenizer
 
-
-def convert(lang, tensor):
-  for t in tensor:
-    if t!=0:
-      print ("%d ----> %s" % (t, lang.index_word[t]))
-
 # Try experimenting with the size of that dataset
-num_examples = 30000
+# num_examples = 10000 # this is causing bug
 input_tensor, target_tensor, inp_lang, targ_lang = load_dataset(path_to_file, num_examples)
 
 # Calculate max_length of the target tensors
@@ -96,6 +90,9 @@ max_length_targ, max_length_inp = max_length(target_tensor), max_length(input_te
 
 # Creating training and validation sets using an 80-20 split
 input_tensor_train, input_tensor_val, target_tensor_train, target_tensor_val = train_test_split(input_tensor, target_tensor, test_size=0.2)
+
+# Show length
+print(len(input_tensor_train), len(target_tensor_train), len(input_tensor_val), len(target_tensor_val))
 
 BUFFER_SIZE = len(input_tensor_train)
 BATCH_SIZE = 64
@@ -134,6 +131,8 @@ encoder = Encoder(vocab_inp_size, embedding_dim, units, BATCH_SIZE)
 # sample input
 sample_hidden = encoder.initialize_hidden_state()
 sample_output, sample_hidden = encoder(example_input_batch, sample_hidden)
+print ('Encoder output shape: (batch size, sequence length, units) {}'.format(sample_output.shape))
+print ('Encoder Hidden state shape: (batch size, units) {}'.format(sample_hidden.shape))
 
 class BahdanauAttention(tf.keras.layers.Layer):
   def __init__(self, units):
@@ -165,6 +164,9 @@ class BahdanauAttention(tf.keras.layers.Layer):
 
 attention_layer = BahdanauAttention(10)
 attention_result, attention_weights = attention_layer(sample_hidden, sample_output)
+
+print("Attention result shape: (batch size, units) {}".format(attention_result.shape))
+print("Attention weights shape: (batch_size, sequence_length, 1) {}".format(attention_weights.shape))
 
 class Decoder(tf.keras.Model):
   def __init__(self, vocab_size, embedding_dim, dec_units, batch_sz):
@@ -207,6 +209,7 @@ decoder = Decoder(vocab_tar_size, embedding_dim, units, BATCH_SIZE)
 sample_decoder_output, _, _ = decoder(tf.random.uniform((64, 1)),
                                       sample_hidden, sample_output)
 
+print ('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
 optimizer = tf.keras.optimizers.Adam()
 loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
     from_logits=True, reduction='none')
@@ -257,7 +260,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss
 
-EPOCHS = 10
+EPOCHS = 5
 
 for epoch in range(EPOCHS):
   start = time.time()
@@ -280,7 +283,6 @@ for epoch in range(EPOCHS):
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                       total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
-
 
 def evaluate(sentence):
     attention_plot = np.zeros((max_length_targ, max_length_inp))
@@ -350,4 +352,4 @@ def translate(sentence):
 # restoring the latest checkpoint in checkpoint_dir
 checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
-translate(u'hace mucho frio aqui.')
+translate(u'Crazy sheep study over the brown mountain.')
