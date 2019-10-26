@@ -1,0 +1,6 @@
+What is the Smart Deck Builder?
+
+We know that creating a new Hearthstone deck can be a fun and rewarding experience for a lot of experienced players, but maybe you’ve taken a break from Hearthstone, or you’re new to the game, or you’re on a time crunch, or just need a little help turning your collection of cards into something you’re proud to take to the ladder. That’s where the smart deck builder comes in. Its purpose is to take care of the heavy lifting and get you into a game with a popular and effective deck, with just a couple of clicks!
+
+To use the smart deck builder, start by creating a Standard deck with any class, using any number of cards. After clicking “Complete My Deck” or “Done”, the feature will intelligently fill out the rest of the deck for you based on what cards you’ve already chosen, using only cards from your existing collection. To give an example of how we might complete a deck, if you choose Oondasta and Play Dead and let Hearthstone take the reins, the smart deck builder will consider several factors, then build what it considers to be the best possible deck, such as the popular Katherina Winterwisp Deathrattle Hunter.
+
