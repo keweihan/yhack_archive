@@ -14,7 +14,7 @@ import os
 import io
 import time
 
-path_to_file = "/Users/jumbers/Documents/GitHub/yhack19/training_input.tsv"
+path_to_file = "/Users/jumbers/Documents/GitHub/yhack19/data2.txt"
 
 # Converts the unicode file to ascii
 def unicode_to_ascii(s):
@@ -81,7 +81,7 @@ def load_dataset(path, num_examples=None):
     return input_tensor, target_tensor, inp_lang_tokenizer, targ_lang_tokenizer
 
 # Try experimenting with the size of that dataset
-num_examples = 10000
+num_examples = 30000
 input_tensor, target_tensor, inp_lang, targ_lang = load_dataset(path_to_file, num_examples)
 
 # Calculate max_length of the target tensors
@@ -235,6 +235,8 @@ def loss_function(real, pred):
 
   return tf.reduce_mean(loss_)
 
+
+
 checkpoint_dir = './training_checkpoints'
 checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 checkpoint = tf.train.Checkpoint(optimizer=optimizer,
@@ -272,7 +274,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss
 
-EPOCHS = 5
+EPOCHS = 10
 
 for epoch in range(EPOCHS):
   start = time.time()
@@ -286,82 +288,84 @@ for epoch in range(EPOCHS):
 
     if batch % 100 == 0:
         print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1,
-                                                     batch,
-                                                     batch_loss.numpy()))
-  # saving (checkpoint) the model every 2 epochs
-  if (epoch + 1) % 2 == 0:
-    checkpoint.save(file_prefix = checkpoint_prefix)
+                                                    batch,
+                                                    batch_loss.numpy()))
+    # saving (checkpoint) the model every 2 epochs
+    if (epoch + 1) % 2 == 0:
+      checkpoint.save(file_prefix = checkpoint_prefix)
 
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
-                                      total_loss / steps_per_epoch))
+                                    total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
 
-def evaluate(sentence):
-    attention_plot = np.zeros((max_length_targ, max_length_inp))
+# def evaluate(sentence):
+#     attention_plot = np.zeros((max_length_targ, max_length_inp))
 
-    sentence = preprocess_sentence(sentence)
+#     sentence = preprocess_sentence(sentence)
 
-    inputs = [inp_lang.word_index[i] for i in sentence.split(' ')]
-    inputs = tf.keras.preprocessing.sequence.pad_sequences([inputs],
-                                                           maxlen=max_length_inp,
-                                                           padding='post')
-    inputs = tf.convert_to_tensor(inputs)
+#     inputs = [inp_lang.word_index[i] for i in sentence.split(' ')]
+#     inputs = tf.keras.preprocessing.sequence.pad_sequences([inputs],
+#                                                            maxlen=max_length_inp,
+#                                                            padding='post')
+#     inputs = tf.convert_to_tensor(inputs)
 
-    result = ''
+#     result = ''
 
-    hidden = [tf.zeros((1, units))]
-    enc_out, enc_hidden = encoder(inputs, hidden)
+#     hidden = [tf.zeros((1, units))]
+#     enc_out, enc_hidden = encoder(inputs, hidden)
 
-    dec_hidden = enc_hidden
-    dec_input = tf.expand_dims([targ_lang.word_index['<start>']], 0)
+#     dec_hidden = enc_hidden
+#     dec_input = tf.expand_dims([targ_lang.word_index['<start>']], 0)
 
-    for t in range(max_length_targ):
-        predictions, dec_hidden, attention_weights = decoder(dec_input,
-                                                             dec_hidden,
-                                                             enc_out)
+#     for t in range(max_length_targ):
+#         predictions, dec_hidden, attention_weights = decoder(dec_input,
+#                                                              dec_hidden,
+#                                                              enc_out)
 
-        # storing the attention weights to plot later on
-        attention_weights = tf.reshape(attention_weights, (-1, ))
-        attention_plot[t] = attention_weights.numpy()
+#         # storing the attention weights to plot later on
+#         attention_weights = tf.reshape(attention_weights, (-1, ))
+#         attention_plot[t] = attention_weights.numpy()
 
-        predicted_id = tf.argmax(predictions[0]).numpy()
+#         predicted_id = tf.argmax(predictions[0]).numpy()
 
-        result += targ_lang.index_word[predicted_id] + ' '
+#         result += targ_lang.index_word[predicted_id] + ' '
 
-        if targ_lang.index_word[predicted_id] == '<end>':
-            return result, sentence, attention_plot
+#         if targ_lang.index_word[predicted_id] == '<end>':
+#             return result, sentence, attention_plot
 
-        # the predicted ID is fed back into the model
-        dec_input = tf.expand_dims([predicted_id], 0)
+#         # the predicted ID is fed back into the model
+#         dec_input = tf.expand_dims([predicted_id], 0)
 
-    return result, sentence, attention_plot
+#     return result, sentence, attention_plot
 
-# function for plotting the attention weights
-def plot_attention(attention, sentence, predicted_sentence):
-    fig = plt.figure(figsize=(10,10))
-    ax = fig.add_subplot(1, 1, 1)
-    ax.matshow(attention, cmap='viridis')
+# # function for plotting the attention weights
+# def plot_attention(attention, sentence, predicted_sentence):
+#     fig = plt.figure(figsize=(10,10))
+#     ax = fig.add_subplot(1, 1, 1)
+#     ax.matshow(attention, cmap='viridis')
 
-    fontdict = {'fontsize': 14}
+#     fontdict = {'fontsize': 14}
 
-    ax.set_xticklabels([''] + sentence, fontdict=fontdict, rotation=90)
-    ax.set_yticklabels([''] + predicted_sentence, fontdict=fontdict)
+#     ax.set_xticklabels([''] + sentence, fontdict=fontdict, rotation=90)
+#     ax.set_yticklabels([''] + predicted_sentence, fontdict=fontdict)
 
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
-    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+#     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+#     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
 
-    plt.show()
+#     plt.show()
 
-def translate(sentence):
-    result, sentence, attention_plot = evaluate(sentence)
+# def translate(sentence):
+#     result, sentence, attention_plot = evaluate(sentence)
 
-    print('Input: %s' % (sentence))
-    print('Predicted translation: {}'.format(result))
+#     print('Input: %s' % (sentence))
+#     print('Predicted translation: {}'.format(result))
 
-    attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
-    plot_attention(attention_plot, sentence.split(' '), result.split(' '))
+#     attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
+#     plot_attention(attention_plot, sentence.split(' '), result.split(' '))
 
-# restoring the latest checkpoint in checkpoint_dir
-checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+# # restoring the latest checkpoint in checkpoint_dir
+# # checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
-translate(u'The crazy sheep study quickly over the brown mountain')
+# # translate(u'The crazy sheep study quickly over the brown mountain')
+# # translate(u'The medieval sandwich is found in Australia and has been recorded from New South Wales')
+# # translate(u'an international terror suspect who had been under a controversial loose form of house arrest is on the run , british home secretary john reid said tuesday .')
