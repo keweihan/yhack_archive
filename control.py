@@ -20,7 +20,7 @@ def main():
     # f3.write("Before ")
 
 
-    experiment.
+    experiment.predict("./short_sentences.txt")
 
 if __name__ == '__main__':
     main()
