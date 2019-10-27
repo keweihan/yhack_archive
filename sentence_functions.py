@@ -33,8 +33,8 @@ def sample_analyze_syntax(text_content):
     for sentence in response.sentences:
         test = sentence.text
         print(u"Sentence text: {}".format(test.content))
-    
-    
+    """
+    """
      # Loop through tokens returned from the API
     for token in response.tokens:
         # Get the text content of this token. Usually a word or punctuation.
@@ -69,12 +69,12 @@ def sample_analyze_syntax(text_content):
         print(
             u"Label: {}".format(enums.DependencyEdge.Label(dependency_edge.label).name)
         )
-    """
+    
     # Get the language of the text, which will be the same as
     # the language specified in the request or, if not specified,
     # the automatically-detected language.
     print(u"Language of the text: {}".format(response.language))
-    
+    """
     return response
 
 #Takes in Google Cloud info and gives word_lemma dictionary pair

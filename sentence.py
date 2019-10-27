@@ -4,7 +4,7 @@ from google.cloud.language_v1 import enums
 import sentence_functions
 import re
 import string
-
+import operator
 
 class WordInfo:
     def __init__(self, lemma_input):
@@ -12,6 +12,14 @@ class WordInfo:
         self.freq = 1 
         self.invfreq = 0 
         self.total_score = 0.0 #TODO: Formula here from paper 
+
+class SentenceInfo:
+    def __init__(self):
+        self.WordCount = 0
+        self.tf_Count = 0 
+        self.tf_Score = 0 
+        self.content = "temp"
+        self.index = 0
 
 class SimpleSentence:
 
@@ -90,44 +98,64 @@ class SimpleSentence:
         print(self.total_words)
         return 
 
-    #Create new dictionary sentence_tf, where key is sentence and value is sum of tf of words
+    #Create new dictionary sentence_SentenceInfo, where key is sentence and value is sum of tf of words and word count
     def sentenceDictionary(self):
         
         #Initialize dictionary with sentences as keys and tf as 0
-        self.sentence_tf = {}   
+        self.sentence_SentenceInfo = {}   
         for sentence in self.info.sentences:
-            sentence_text = sentence.text
-            
+            newSentenceInfo = SentenceInfo()
+            newSentenceInfo.content = sentence.text.content
+            newSentenceInfo.index = sentence.text.begin_offset
+
             #if word is already in dictionary, do nothing
-            self.sentence_tf[sentence_text.content] = 0 
+            self.sentence_SentenceInfo[sentence.text.content] = newSentenceInfo 
         
         #Split sentence key into words and find tf value for each word.
-        word_lemma = sentence_functions.generate_word_lemma_dict(self.info)
-        for sentence_key in self.sentence_tf:
-            wordlist = re.findall(r'\w+', sentence_key)
+        #word_lemma = sentence_functions.generate_word_lemma_dict(self.info)
+        
+
+        for sentence_key in self.sentence_SentenceInfo:
+            #wordlist = re.findall(r'\w+', sentence_key)
+            #wordlist = re.findall(r"\w+(?=n't)|n't|\w+(?=')|'\w+|\w+","you've it's couldn't don't", re.IGNORECASE | re.DOTALL)
             #print ("The list of words is : " +  str(wordlist)) DEBUG
+            sentence_cloud_info = sentence_functions.sample_analyze_syntax(sentence_key)
+            for token in sentence_cloud_info.tokens:
+                self.sentence_SentenceInfo[sentence_key].tf_Count += self.lemma_WordInfo[token.lemma].total_score
+                self.sentence_SentenceInfo[sentence_key].WordCount += 1
+
+            self.sentence_SentenceInfo[sentence_key].tf_Score = self.sentence_SentenceInfo[sentence_key].tf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
+            
+
+            """
             for word_input in wordlist:
                 #self.lemma_WordInfo[]    <-don't need this right?
                 lemma = word_lemma[word_input] #convert word to it's lemma to find tf
-                self.sentence_tf[sentence_key] += self.lemma_WordInfo[lemma].total_score
+                self.sentence_SentenceInfo[sentence_key] += self.lemma_WordInfo[lemma].total_score
+            """
 
-        return_list = sorted(self.sentence_tf.values(), reverse=True)[:int(len(self.sentence_tf) * self.sentence_output)]
-        for x in self.sentence_tf: # using key
-            if self.sentence_tf[x] in return_list:
+        #return_list = sorted(self.sentence_SentenceInfo.values(), key=self.sentence_SentenceInfo.values().tf_Score, reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]
+        for x in (sorted(self.sentence_SentenceInfo.values(), key=operator.attrgetter('tf_Score'), reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]):
                 self.return_sentences.append(x)
+        """
+        for x in self.sentence_SentenceInfo: # using key
+            if self.sentence_SentenceInfo[x] in return_list:
+                self.return_sentences.append(x)
+        """
 
         ##TODO: Break up key string and update value based on their priority 
-
-        inv_tf_sentence = {v: k for k, v in self.sentence_tf.items()}
 
         
 
     def outputResult(self):
         outF = open("short_sentences.txt", "w")
-        for sentence_output in self.return_sentences:
-            outF.write(sentence_output)
-            outF.write("\n")
 
+        self.return_sentences.sort(key=lambda x: x.index)
+
+        for sentence_output in self.return_sentences:
+            outF.write(sentence_output.content)
+            outF.write("\n")
+        
 
 
 if __name__ == '__main__':
