@@ -56,7 +56,7 @@ class SimpleSentence:
         self.lemma_WordInfo = {"NULL": placehold_object}   
         """
         self.lemma_WordInfo = {}
-        self.sentence_output = 0.5
+        self.sentence_output = 0.3
         self.return_sentences = [] # the returned sentences
 
     #Uses info object to add unique words to list
@@ -98,6 +98,8 @@ class SimpleSentence:
         print(self.total_words)
         return 
 
+    
+
     #Create new dictionary sentence_SentenceInfo, where key is sentence and value is sum of tf of words and word count
     def sentenceDictionary(self):
         
@@ -136,7 +138,8 @@ class SimpleSentence:
 
         #return_list = sorted(self.sentence_SentenceInfo.values(), key=self.sentence_SentenceInfo.values().tf_Score, reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]
         for x in (sorted(self.sentence_SentenceInfo.values(), key=operator.attrgetter('tf_Score'), reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]):
-                self.return_sentences.append(x)
+                ez_shorten = self.adj_Remove(x) #Adjective Removal
+                self.return_sentences.append(ez_shorten) #replace 'ez_shorten' with x and delete above line  to revert
         """
         for x in self.sentence_SentenceInfo: # using key
             if self.sentence_SentenceInfo[x] in return_list:
@@ -145,8 +148,29 @@ class SimpleSentence:
 
         ##TODO: Break up key string and update value based on their priority 
 
-        
+    
+    #Adjective Removal
+    def adj_Remove(self, sentenceInfo_obj):
+        sentence_cloud_info = sentence_functions.sample_analyze_syntax(sentenceInfo_obj.content)
+        output = ''
+        for token in sentence_cloud_info.tokens:
+            part_of_speech = token.part_of_speech
+            if enums.PartOfSpeech.Tag(part_of_speech.tag).name != 'ADJ': 
+                if token.text.content != "the":
+                    output += token.text.content
+                if enums.PartOfSpeech.Tag(part_of_speech.tag).name != 'P':
+                    if token.text.content != "the":
+                        output += ' '
 
+        sentenceInfo_obj.content = output
+
+        return sentenceInfo_obj
+
+
+
+
+
+    #Output result into a files
     def outputResult(self):
         outF = open("short_sentences.txt", "w")
 
@@ -156,7 +180,7 @@ class SimpleSentence:
             outF.write(sentence_output.content)
             outF.write("\n")
         
-
+    
 
 if __name__ == '__main__':
 
