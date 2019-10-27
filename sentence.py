@@ -5,19 +5,24 @@ import sentence_functions
 import re
 import string
 import operator
+import math
+import itertools
 
 class WordInfo:
     def __init__(self, lemma_input):
         self.lemma = lemma_input
         self.freq = 1
-        self.invfreq = 0
-        self.total_score = 0.0 #TODO: Formula here from paper
+        self.idf_score = 0
+        self.tf_score = 0.0 #TODO: Formula here from paper
 
 class SentenceInfo:
     def __init__(self):
         self.WordCount = 0
         self.tf_Count = 0
+        self.idf_Count = 0
         self.tf_Score = 0
+        self.idf_Score = 0
+        self.total_Score = 0
         self.content = "temp"
         self.index = 0
 
@@ -58,6 +63,7 @@ class SimpleSentence:
         self.lemma_WordInfo = {}
         self.sentence_output = 0.5
         self.return_sentences = [] # the returned sentences
+        self.sentence_count = 0
 
     #Uses info object to add unique words to list
     def add_unique_words(self):
@@ -85,20 +91,20 @@ class SimpleSentence:
             #print(float(self.lemma_WordInfo[x].freq)) DEBUG
             #print(float(self.total_words))
             #print(float(self.lemma_WordInfo[x].freq)/float(self.total_words))
-            self.lemma_WordInfo[x].total_score = float( float(self.lemma_WordInfo[x].freq ) / float(self.total_words)  )
+            self.lemma_WordInfo[x].idf_score = math.log10(float(len(self.info.sentences))/float(self.lemma_WordInfo[x].freq))
+            self.lemma_WordInfo[x].tf_score = float( float(self.lemma_WordInfo[x].freq ) / float(self.total_words) )
 
     #TEST FUNCTION ONLY
     def outputDictionary(self):
         for x in self.lemma_WordInfo:
             print(x, end = '')
             print(" : ", end = ''),
-            print(self.lemma_WordInfo[x].total_score)
+            print(self.lemma_WordInfo[x].tf_score)
 
 
         print(self.total_words)
         return
 
-    
 
     #Create new dictionary sentence_SentenceInfo, where key is sentence and value is sum of tf of words and word count
     def sentenceDictionary(self):
@@ -109,7 +115,7 @@ class SimpleSentence:
             newSentenceInfo = SentenceInfo()
             newSentenceInfo.content = sentence.text.content
             newSentenceInfo.index = sentence.text.begin_offset
-
+            
             #if word is already in dictionary, do nothing
             self.sentence_SentenceInfo[sentence.text.content] = newSentenceInfo
 
@@ -123,21 +129,25 @@ class SimpleSentence:
             #print ("The list of words is : " +  str(wordlist)) DEBUG
             sentence_cloud_info = sentence_functions.sample_analyze_syntax(sentence_key)
             for token in sentence_cloud_info.tokens:
-                self.sentence_SentenceInfo[sentence_key].tf_Count += self.lemma_WordInfo[token.lemma].total_score
+                self.sentence_SentenceInfo[sentence_key].tf_Count += self.lemma_WordInfo[token.lemma].tf_score
+                self.sentence_SentenceInfo[sentence_key].idf_Count += self.lemma_WordInfo[token.lemma].idf_score
                 self.sentence_SentenceInfo[sentence_key].WordCount += 1
 
             self.sentence_SentenceInfo[sentence_key].tf_Score = self.sentence_SentenceInfo[sentence_key].tf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
+            self.sentence_SentenceInfo[sentence_key].idf_Score = self.sentence_SentenceInfo[sentence_key].idf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
+
+            self.sentence_SentenceInfo[sentence_key].total_Score = self.sentence_SentenceInfo[sentence_key].idf_Score * self.sentence_SentenceInfo[sentence_key].tf_Score
 
 
             """
             for word_input in wordlist:
                 #self.lemma_WordInfo[]    <-don't need this right?
                 lemma = word_lemma[word_input] #convert word to it's lemma to find tf
-                self.sentence_SentenceInfo[sentence_key] += self.lemma_WordInfo[lemma].total_score
+                self.sentence_SentenceInfo[sentence_key] += self.lemma_WordInfo[lemma].tf_score
             """
 
         #return_list = sorted(self.sentence_SentenceInfo.values(), key=self.sentence_SentenceInfo.values().tf_Score, reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]
-        for x in (sorted(self.sentence_SentenceInfo.values(), key=operator.attrgetter('tf_Score'), reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]):
+        for x in (sorted(self.sentence_SentenceInfo.values(), key=operator.attrgetter('total_Score'), reverse=True)[:int(len(self.sentence_SentenceInfo) * self.sentence_output)]):
                 ez_shorten = self.adj_Remove(x) #Adjective Removal
                 self.return_sentences.append(ez_shorten) #replace 'ez_shorten' with x and delete above line  to revert
         """
@@ -153,7 +163,7 @@ class SimpleSentence:
     #Adjective Removal
     def adj_Remove(self, sentenceInfo_obj):
         sentence_cloud_info = sentence_functions.sample_analyze_syntax(sentenceInfo_obj.content)
-        output = ''
+        output = ""
         for token in sentence_cloud_info.tokens:
             part_of_speech = token.part_of_speech
             if enums.PartOfSpeech.Tag(part_of_speech.tag).name != 'ADJ': 
@@ -162,6 +172,13 @@ class SimpleSentence:
                 if enums.PartOfSpeech.Tag(part_of_speech.tag).name != 'P':
                     if token.text.content != "the":
                         output += ' '
+        
+        #correct whitespace
+        output = output.replace(" .", ".")
+        output = output.replace(" ,", ",")
+        output = output.replace('" ', '"')
+        output = output.replace('( ', '(')
+        output = output.replace(' )', ')')
 
         sentenceInfo_obj.content = output
 
@@ -189,6 +206,7 @@ def sentenceDriver(filepath):
     Simplify.outputResult()
 
 if __name__ == '__main__':
+    
 
     #Create Object
     Simplify = SimpleSentence("sentence_input.txt")
