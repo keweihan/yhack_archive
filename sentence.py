@@ -128,15 +128,16 @@ class SimpleSentence:
             #wordlist = re.findall(r"\w+(?=n't)|n't|\w+(?=')|'\w+|\w+","you've it's couldn't don't", re.IGNORECASE | re.DOTALL)
             #print ("The list of words is : " +  str(wordlist)) DEBUG
             sentence_cloud_info = sentence_functions.sample_analyze_syntax(sentence_key)
-            for token in sentence_cloud_info.tokens:
-                self.sentence_SentenceInfo[sentence_key].tf_Count += self.lemma_WordInfo[token.lemma].tf_score
-                self.sentence_SentenceInfo[sentence_key].idf_Count += self.lemma_WordInfo[token.lemma].idf_score
-                self.sentence_SentenceInfo[sentence_key].WordCount += 1
+            if len(sentence_cloud_info.tokens) > 3: #to avoid 3 liners having more meaning than others 
+                for token in sentence_cloud_info.tokens:
+                    self.sentence_SentenceInfo[sentence_key].tf_Count += self.lemma_WordInfo[token.lemma].tf_score
+                    self.sentence_SentenceInfo[sentence_key].idf_Count += self.lemma_WordInfo[token.lemma].idf_score
+                    self.sentence_SentenceInfo[sentence_key].WordCount += 1
 
-            self.sentence_SentenceInfo[sentence_key].tf_Score = self.sentence_SentenceInfo[sentence_key].tf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
-            self.sentence_SentenceInfo[sentence_key].idf_Score = self.sentence_SentenceInfo[sentence_key].idf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
+                self.sentence_SentenceInfo[sentence_key].tf_Score = self.sentence_SentenceInfo[sentence_key].tf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
+                self.sentence_SentenceInfo[sentence_key].idf_Score = self.sentence_SentenceInfo[sentence_key].idf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
 
-            self.sentence_SentenceInfo[sentence_key].total_Score = self.sentence_SentenceInfo[sentence_key].idf_Score * self.sentence_SentenceInfo[sentence_key].tf_Score
+                self.sentence_SentenceInfo[sentence_key].total_Score = self.sentence_SentenceInfo[sentence_key].idf_Score * self.sentence_SentenceInfo[sentence_key].tf_Score
 
 
             """
