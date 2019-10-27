@@ -14,7 +14,7 @@ import os
 import io
 import time
 
-path_to_file = "/Users/jumbers/Documents/GitHub/yhack19/data2.txt"
+path_to_file = "/Users/Darcy/Desktop/yhack19/yhack19/data2.txt"
 
 # Converts the unicode file to ascii
 def unicode_to_ascii(s):
@@ -340,9 +340,9 @@ def translate(sentence):
 print(tf.train.latest_checkpoint(checkpoint_dir))
 # restoring the latest checkpoint in checkpoint_dir
 # checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-checkpoint.restore('/Users/jumbers/Desktop/yhacksbackup/training_checkpoints/ckpt-5.index')
+checkpoint.restore('/Users/Darcy/Desktop/yhack19/yhack19/training_checkpoints/ckpt-2.index')
 
-
-translate(u'The crazy sheep study quickly over the brown mountain')
-translate(u'The medieval sandwich is found in Australia and has been recorded from New South Wales')
-translate(u'an international terror suspect who had been under a controversial loose form of house arrest is on the run , british home secretary john reid said tuesday .')
+translate(u'We wanted to make something accessible to everyone that implemented cool models. After discussing ideas, we settled on something that would help us in our daily lives: a robot that could record meetings, conversations, and lectures; a robot that can even take notes and write passages! Tehuantepec got its name after a glitch run of speech to text, sentence filtering, and sentence compression. We think this is just the starting point of a cool idea that will only get better from here.')
+# translate(u'The crazy sheep study quickly over the brown mountain')
+# translate(u'The medieval sandwich is found in Australia and has been recorded from New South Wales')
+# translate(u'an international terror suspect who had been under a controversial loose form of house arrest is on the run , british home secretary john reid said tuesday .')
