@@ -9,15 +9,15 @@ import operator
 class WordInfo:
     def __init__(self, lemma_input):
         self.lemma = lemma_input
-        self.freq = 1 
-        self.invfreq = 0 
-        self.total_score = 0.0 #TODO: Formula here from paper 
+        self.freq = 1
+        self.invfreq = 0
+        self.total_score = 0.0 #TODO: Formula here from paper
 
 class SentenceInfo:
     def __init__(self):
         self.WordCount = 0
-        self.tf_Count = 0 
-        self.tf_Score = 0 
+        self.tf_Count = 0
+        self.tf_Score = 0
         self.content = "temp"
         self.index = 0
 
@@ -25,11 +25,11 @@ class SimpleSentence:
 
     #Calls Google Cloud Syntax API on given "text_content"
     def sample_analyze_syntax(self, text_content):
-        
+
         client = language_v1.LanguageServiceClient()
         type_ = enums.Document.Type.PLAIN_TEXT
 
-        
+
         #Set Language
         language = "en"
         document = {"content": text_content, "type": type_, "language": language}
@@ -53,7 +53,7 @@ class SimpleSentence:
         #Dictionary of unique words
         """
         placehold_object = WordInfo("NULL")
-        self.lemma_WordInfo = {"NULL": placehold_object}   
+        self.lemma_WordInfo = {"NULL": placehold_object}
         """
         self.lemma_WordInfo = {}
         self.sentence_output = 0.5
@@ -65,12 +65,12 @@ class SimpleSentence:
             newWord = token.lemma
 
             #if word is already in dictionary, update information
-            if newWord in self.lemma_WordInfo: 
+            if newWord in self.lemma_WordInfo:
                 token_info = self.lemma_WordInfo[token.lemma]
-                
-                #TODO: update 
+
+                #TODO: update
                 token_info.freq += 1
-                
+
             else:
                 part_of_speech = token.part_of_speech
                 if enums.PartOfSpeech.Tag(part_of_speech.tag).name != 'P': #TODO: Doesn't filter anything?
@@ -78,7 +78,7 @@ class SimpleSentence:
                     self.lemma_WordInfo[token.lemma] = token_info
 
             self.total_words += 1
-    
+
     #Goes through lemma_WordInfo and updates tf score. TODO: Add idf
     def calcScore(self):
         for x in self.lemma_WordInfo:
@@ -86,34 +86,34 @@ class SimpleSentence:
             #print(float(self.total_words))
             #print(float(self.lemma_WordInfo[x].freq)/float(self.total_words))
             self.lemma_WordInfo[x].total_score = float( float(self.lemma_WordInfo[x].freq ) / float(self.total_words)  )
-        
+
     #TEST FUNCTION ONLY
     def outputDictionary(self):
         for x in self.lemma_WordInfo:
             print(x, end = '')
             print(" : ", end = ''),
             print(self.lemma_WordInfo[x].total_score)
-            
+
 
         print(self.total_words)
-        return 
+        return
 
     #Create new dictionary sentence_SentenceInfo, where key is sentence and value is sum of tf of words and word count
     def sentenceDictionary(self):
-        
+
         #Initialize dictionary with sentences as keys and tf as 0
-        self.sentence_SentenceInfo = {}   
+        self.sentence_SentenceInfo = {}
         for sentence in self.info.sentences:
             newSentenceInfo = SentenceInfo()
             newSentenceInfo.content = sentence.text.content
             newSentenceInfo.index = sentence.text.begin_offset
 
             #if word is already in dictionary, do nothing
-            self.sentence_SentenceInfo[sentence.text.content] = newSentenceInfo 
-        
+            self.sentence_SentenceInfo[sentence.text.content] = newSentenceInfo
+
         #Split sentence key into words and find tf value for each word.
         #word_lemma = sentence_functions.generate_word_lemma_dict(self.info)
-        
+
 
         for sentence_key in self.sentence_SentenceInfo:
             #wordlist = re.findall(r'\w+', sentence_key)
@@ -125,7 +125,7 @@ class SimpleSentence:
                 self.sentence_SentenceInfo[sentence_key].WordCount += 1
 
             self.sentence_SentenceInfo[sentence_key].tf_Score = self.sentence_SentenceInfo[sentence_key].tf_Count/self.sentence_SentenceInfo[sentence_key].WordCount
-            
+
 
             """
             for word_input in wordlist:
@@ -143,9 +143,9 @@ class SimpleSentence:
                 self.return_sentences.append(x)
         """
 
-        ##TODO: Break up key string and update value based on their priority 
+        ##TODO: Break up key string and update value based on their priority
 
-        
+
 
     def outputResult(self):
         outF = open("short_sentences.txt", "w")
@@ -155,8 +155,16 @@ class SimpleSentence:
         for sentence_output in self.return_sentences:
             outF.write(sentence_output.content)
             outF.write("\n")
-        
 
+def sentenceDriver(filepath):
+    Simplify = SimpleSentence(filepath)
+    Simplify.add_unique_words()
+
+    Simplify.calcScore()
+    #Simplify.outputDictionary()
+    Simplify.sentenceDictionary()
+
+    Simplify.outputResult()
 
 if __name__ == '__main__':
 
@@ -169,8 +177,3 @@ if __name__ == '__main__':
     Simplify.sentenceDictionary()
 
     Simplify.outputResult()
-
-
-    
-
-

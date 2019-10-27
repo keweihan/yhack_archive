@@ -1,6 +1,7 @@
 import time
 import re
 import sys
+import os
 
 # uses result_end_time currently only avaialble in v1p1beta, will be in v1 soon
 from google.cloud import speech_v1p1beta1 as speech
@@ -8,7 +9,7 @@ import pyaudio
 from six.moves import queue
 
 # Audio recording parameters
-STREAMING_LIMIT = 10000
+STREAMING_LIMIT = 5000
 SAMPLE_RATE = 16000
 CHUNK_SIZE = int(SAMPLE_RATE / 10)  # 100ms
 
@@ -215,9 +216,10 @@ def listen_print_loop(responses, stream):
             stream.last_transcript_was_final = False
 
 
-def main():
+def s2tmain():
     """start bidirectional streaming from microphone input to speech API"""
-
+    if os.path.exists("./result_final.txt"):
+        os.remove("./result_final.txt")
     client = speech.SpeechClient()
     config = speech.types.RecognitionConfig(
         encoding=speech.enums.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -269,4 +271,4 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    s2tmain()
