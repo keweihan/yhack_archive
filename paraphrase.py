@@ -14,7 +14,7 @@ import os
 import io
 import time
 
-path_to_file = "/Users/jumbers/Documents/GitHub/yhack19/data2.txt"
+path_to_file = "/Users/Darcy/Desktop/yhack19/yhack19/data2.txt"
 
 # Converts the unicode file to ascii
 def unicode_to_ascii(s):
@@ -274,7 +274,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss
 
-EPOCHS = 10
+EPOCHS = 1
 
 for epoch in range(EPOCHS):
   start = time.time()
@@ -291,8 +291,8 @@ for epoch in range(EPOCHS):
                                                     batch,
                                                     batch_loss.numpy()))
     # saving (checkpoint) the model every 2 epochs
-    if (epoch + 1) % 2 == 0:
-      checkpoint.save(file_prefix = checkpoint_prefix)
+    # if (epoch + 1) % 2 == 0:
+  checkpoint.save(file_prefix = checkpoint_prefix)
 
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                     total_loss / steps_per_epoch))
