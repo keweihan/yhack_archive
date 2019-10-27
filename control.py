@@ -1,7 +1,7 @@
 import s2t
 import sentence
 import sys
-
+import experiment
 
 def main():
     # record_len = int(input("Enter the amount of time for the recording"))
@@ -19,6 +19,8 @@ def main():
     # f3 = open("combined_result.txt", "w+")
     # f3.write("Before ")
 
+
+    experiment.
 
 if __name__ == '__main__':
     main()

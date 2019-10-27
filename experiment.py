@@ -334,15 +334,28 @@ def translate(sentence):
     print('Input: %s' % (sentence))
     print('Predicted translation: {}'.format(result))
 
+
     attention_plot = attention_plot[:len(result.split(' ')), :len(sentence.split(' '))]
     plot_attention(attention_plot, sentence.split(' '), result.split(' '))
+    return result
 
 print(tf.train.latest_checkpoint(checkpoint_dir))
 # restoring the latest checkpoint in checkpoint_dir
 # checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 checkpoint.restore('/Users/Darcy/Desktop/yhack19/yhack19/training_checkpoints/ckpt-1.index')
 
-translate(u'We wanted to make something accessible to everyone that implemented cool models. After discussing ideas, we settled on something that would help us in our daily lives: a robot that could record meetings, conversations, and lectures; a robot that can even take notes and write passages! Tehuantepec got its name after a glitch run of speech to text, sentence filtering, and sentence compression. We think this is just the starting point of a cool idea that will only get better from here.')
 # translate(u'The crazy sheep study quickly over the brown mountain')
 # translate(u'The medieval sandwich is found in Australia and has been recorded from New South Wales')
 # translate(u'an international terror suspect who had been under a controversial loose form of house arrest is on the run , british home secretary john reid said tuesday .')
+
+def predict(filepath):
+  f = open(filepath, "r")
+  lines = f.readlines()
+  f.close()
+  f = open("paraphrased_result.txt", "w+")
+  for line in lines:
+    shortened = translate(line)
+    f.write(shortened)
+
+  f.close()
+  return
