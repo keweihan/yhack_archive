@@ -56,7 +56,7 @@ class SimpleSentence:
         self.lemma_WordInfo = {"NULL": placehold_object}
         """
         self.lemma_WordInfo = {}
-        self.sentence_output = 0.3
+        self.sentence_output = 0.5
         self.return_sentences = [] # the returned sentences
 
     #Uses info object to add unique words to list
